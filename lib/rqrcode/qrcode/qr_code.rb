@@ -90,7 +90,7 @@ module RQRCode #:nodoc:
 
       options               = args.extract_options!
       level                 = (options[:level] || :h).to_sym
-      size                  = options[:size] || 4
+      size                  = options[:size] || smallest_size_for(string, level)
 
       if !QRERRORCORRECTLEVEL.has_key?(level)
         raise QRCodeArgumentError, "Unknown error correction level `#{level.inspect}`"
@@ -199,6 +199,9 @@ module RQRCode #:nodoc:
       map_data( @data_cache, mask_pattern )
     end
 
+    def smallest_size_for(string, level) #:nodoc:
+        return 4 # TODO: find smallest size for given string and level
+    end
 
     def place_position_probe_pattern( row, col ) #:nodoc:
       (-1..7).each do |r|
