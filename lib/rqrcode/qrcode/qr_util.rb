@@ -163,34 +163,35 @@ module RQRCode #:nodoc:
     end
 
     def QRUtil.demerit_points_1_same_color(modules)
-      demerit_points = 0
-      module_count = modules.size
-
       # level1
-      (0...module_count).each do |row|
-        (0...module_count).each do |col|
-          same_count = 0
-          dark = modules[row][col]
 
-          ( -1..1 ).each do |r|
-            next if row + r < 0 || module_count <= row + r
+      rows = modules
+      cols = modules.transpose
+      similar_in_rows = rows.map { |row| find_contiguous_sequences(row) }.flatten
+      similar_in_cols = cols.map { |col| find_contiguous_sequences(col) }.flatten
 
-            ( -1..1 ).each do |c|
-              next if col + c < 0 || module_count <= col + c
-              next if r == 0 && c == 0
-              if dark == modules[row + r][col + c]
-                same_count += 1
-              end
-            end
-          end
-
-          if same_count > 5
-            demerit_points += (DEMERIT_POINTS_1 + same_count - 5)
-          end
-        end
+      similar = (similar_in_rows + similar_in_cols).select { |length| length > 5 }
+      demerit_points = similar.reduce(0) do |points, length|
+          points += (DEMERIT_POINTS_1 + length - 5)
       end
 
       return demerit_points
+    end
+
+    def QRUtil.find_contiguous_sequences(line)
+      contiguous = [0]
+      last_color = line.first
+
+      line.each do |point|
+        if last_color == point
+          contiguous[-1] += 1
+        else
+          last_color = point
+          contiguous << 1
+        end
+      end
+
+      return contiguous
     end
 
     def QRUtil.demerit_points_2_full_blocks(modules)
